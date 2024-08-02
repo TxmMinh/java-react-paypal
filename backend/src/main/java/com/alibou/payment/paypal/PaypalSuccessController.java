@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class PaypalSuccessController {
 
     private final PaypalService paypalService;
+    private final PaypalTransactionService paypalTransactionService;
 
     @Value("${application.frontend.url}")
     private String frontendUrl;
@@ -29,6 +30,9 @@ public class PaypalSuccessController {
         try {
             Payment payment = paypalService.executePayment(paymentId, payerId);
             if (payment.getState().equals("approved")) {
+                // Save payment details to the database
+                paypalTransactionService.savePaymentDetails(paymentId);
+
                 model.addAttribute("frontendUrl", frontendUrl);
                 return "paymentSuccess";
             }
@@ -37,5 +41,4 @@ public class PaypalSuccessController {
         }
         return "paymentSuccess";
     }
-
 }

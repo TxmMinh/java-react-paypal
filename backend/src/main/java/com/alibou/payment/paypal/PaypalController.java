@@ -21,6 +21,7 @@ public class PaypalController {
     private String backendUrl;
 
     private final PaypalService paypalService;
+    private final PaypalTransactionService paypalTransactionService;
 
     @PostMapping("/create")
     public Map<String, String> createPayment(@RequestBody Map<String, String> paymentData) {
@@ -53,6 +54,16 @@ public class PaypalController {
         }
         response.put("error", "Payment creation failed");
         return response;
+    }
+
+    @GetMapping("/details/{transactionId}")
+    public PaymentDetails getPaymentDetails(@PathVariable String transactionId) {
+        try {
+            return paypalTransactionService.savePaymentDetails(transactionId);
+        } catch (PayPalRESTException e) {
+            log.error("Error occurred:: ", e);
+            return null;
+        }
     }
 
     @GetMapping("/cancel")

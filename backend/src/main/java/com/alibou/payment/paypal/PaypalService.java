@@ -4,6 +4,7 @@ import com.paypal.api.payments.*;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,6 +16,9 @@ import java.util.Locale;
 public class PaypalService {
 
     private final APIContext apiContext;
+
+    @Value("${paypal.email}")
+    private String paypalEmail;
 
     public Payment createPayment(
             Double total,
@@ -32,6 +36,7 @@ public class PaypalService {
         Transaction transaction = new Transaction();
         transaction.setDescription(description);
         transaction.setAmount(amount);
+        transaction.setPayee(new Payee().setEmail(paypalEmail));  
 
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(transaction);

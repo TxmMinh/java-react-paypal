@@ -23,56 +23,54 @@ public class PaypalTransactionService {
         return Payment.get(apiContext, transactionId);
     }
 
-public PaymentDetails savePaymentDetails(String transactionId) throws PayPalRESTException {
-    // Fetch payment details from PayPal
-    Payment payment = getPaymentDetails(transactionId);
+    public void savePaymentDetails(String transactionId) throws PayPalRESTException {
+        // Fetch payment details from PayPal
+        Payment payment = getPaymentDetails(transactionId);
 
-    // Create a new PaymentDetails object
-    PaymentDetails paymentDetails = new PaymentDetails();
-    paymentDetails.setTransactionId(payment.getId());
+        // Create a new PaymentDetails object
+        PaymentDetails paymentDetails = new PaymentDetails();
+        paymentDetails.setTransactionId(payment.getId());
 
-    // Parse and set the payment date
-    paymentDetails.setDate(LocalDateTime.parse(payment.getCreateTime(), DateTimeFormatter.ISO_DATE_TIME));
+        // Parse and set the payment date
+        paymentDetails.setDate(LocalDateTime.parse(payment.getCreateTime(), DateTimeFormatter.ISO_DATE_TIME));
 
-    // Set the description of the payment
-    paymentDetails.setDescription(payment.getTransactions().get(0).getDescription());
+        // Set the description of the payment
+        paymentDetails.setDescription(payment.getTransactions().get(0).getDescription());
 
-    // Set the payer's name
-    paymentDetails.setName(payment.getPayer().getPayerInfo().getFirstName() + " " + payment.getPayer().getPayerInfo().getLastName());
+        // Set the payer's name
+        paymentDetails.setName(payment.getPayer().getPayerInfo().getFirstName() + " " + payment.getPayer().getPayerInfo().getLastName());
 
-    // Set the status of the payment
-    paymentDetails.setStatus(payment.getState());
+        // Set the status of the payment
+        paymentDetails.setStatus(payment.getState());
 
-    // Set the gross amount of the payment
-    paymentDetails.setGross(Double.parseDouble(payment.getTransactions().get(0).getAmount().getTotal()));
+        // Set the gross amount of the payment
+        paymentDetails.setGross(Double.parseDouble(payment.getTransactions().get(0).getAmount().getTotal()));
 
-    // Retrieve transaction fee and net amount
-    // Fees are typically part of the Payment's transaction details
-    double fee = 0.0;
-    double net = paymentDetails.getGross(); // Default to gross if fee isn't available
+        // Retrieve transaction fee and net amount
+        // Fees are typically part of the Payment's transaction details
+        double fee = 0.0;
+        double net = paymentDetails.getGross(); // Default to gross if fee isn't available
 
-    for (Transaction transaction : payment.getTransactions()) {
-        if (transaction.getRelatedResources() != null) {
-            for (RelatedResources relatedResource : transaction.getRelatedResources()) {
-                if (relatedResource.getSale() != null) {
-                    Sale sale = relatedResource.getSale();
-                    // Extract fee from the sale object
-                    fee = sale.getTransactionFee().getValue() != null
-                        ? Double.parseDouble(sale.getTransactionFee().getValue())
-                        : 0.0;
-                    // Calculate net amount
-                    net = paymentDetails.getGross() - fee;
-                    break;
+        for (Transaction transaction : payment.getTransactions()) {
+            if (transaction.getRelatedResources() != null) {
+                for (RelatedResources relatedResource : transaction.getRelatedResources()) {
+                    if (relatedResource.getSale() != null) {
+                        Sale sale = relatedResource.getSale();
+                        // Extract fee from the sale object
+                        fee = sale.getTransactionFee().getValue() != null ? Double.parseDouble(sale.getTransactionFee().getValue()) : 0.0;
+                        // Calculate net amount
+                        net = paymentDetails.getGross() - fee;
+                        break;
+                    }
                 }
             }
         }
+
+        paymentDetails.setFee(fee);
+        paymentDetails.setNet(net);
+
+        // Save the payment details to the repository
+        paymentDetailsRepository.save(paymentDetails);
     }
-
-    paymentDetails.setFee(fee);
-    paymentDetails.setNet(net);
-
-    // Save the payment details to the repository
-    return paymentDetailsRepository.save(paymentDetails);
-}
 
 }

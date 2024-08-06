@@ -4,7 +4,6 @@ paypal:
   mode: sandbox # Use #sandbox' for testing and 'live' for Production
   email: assistant.system@business.example.com
 
-
 application:
   frontend:
     url: http://localhost:3000

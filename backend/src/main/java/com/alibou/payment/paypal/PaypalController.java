@@ -56,16 +56,6 @@ public class PaypalController {
         return response;
     }
 
-    @GetMapping("/details/{transactionId}")
-    public PaymentDetails getPaymentDetails(@PathVariable String transactionId) {
-        try {
-            return paypalTransactionService.savePaymentDetails(transactionId);
-        } catch (PayPalRESTException e) {
-            log.error("Error occurred:: ", e);
-            return null;
-        }
-    }
-
     @GetMapping("/cancel")
     public String paymentCancel() {
         return "paymentCancel";
